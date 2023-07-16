@@ -5,8 +5,14 @@
 package it.polito.tdp.nyc;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.nyc.model.City;
+import it.polito.tdp.nyc.model.Distanza;
 import it.polito.tdp.nyc.model.Model;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -39,7 +45,7 @@ public class FXMLController {
     private ComboBox<String> cmbProvider; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbQuartiere"
-    private ComboBox<?> cmbQuartiere; // Value injected by FXMLLoader
+    private ComboBox<City> cmbQuartiere; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtMemoria"
     private TextField txtMemoria; // Value injected by FXMLLoader
@@ -58,13 +64,44 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	String provider=this.cmbProvider.getValue();
+    	if(provider==null) {
+    		this.txtResult.appendText("E' necessario selezionare un provider");
+    		return;
+    	}
+    	this.model.creaGrafo(provider);
     	
+    	this.txtResult.appendText("Grafo creato con "+ this.model.nVertici()+" vertici e "+this.model.getArchi()+" archi\n");
+    	
+    	    	this.cmbQuartiere.getItems().clear(); //per pulirla dal grafo precedente
+    	    	//facendo questa operazione ogni volta che pulisco il grafo
+    	
+    	//a questo punto col metodo che fatto prima popolo la tendina con la lista dei soli vertici del grafo che prendo dal model
+    	this.cmbQuartiere.getItems().addAll(this.model.getCitta()); 
+    	//USA QUESTO METODO PER RIPOPOLARE LA SECONDA TENDINA COI VERTICI DEL GRAFO, E' PIù VELOCE ED EVITA MOLTI ERRORI
+ 	
     }
 
     @FXML
     void doQuartieriAdiacenti(ActionEvent event) {
+    	//prendo la citta scelta e gli passo il metodo che calcola i vicini
+    	City scelta=this.cmbQuartiere.getValue();
     	
-    }
+    	if(scelta==null) {
+    		this.txtResult.appendText("Selezionare una citta");
+    		return;
+    	} 
+    	
+    	List<Distanza> distanze=this.model.getDistanze(scelta);
+    	
+    	this.txtResult.appendText("\n La citta selezionata ha i seguenti vicini: \n");
+    	for(Distanza d: distanze) {
+    		this.txtResult.appendText(d+"\n");
+    	}
+    	
+    	
+}
+    
 
     @FXML
     void doSimula(ActionEvent event) {
@@ -87,6 +124,9 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	//metto nella tendina dei provider tutti i provider che prendo dal model
+    	//lo faccio direttamente nel setModel cosi che al run dell'applicazione la tendina è gia popolata
+    	this.cmbProvider.getItems().addAll(this.model.getAllProviders());
     }
 
 }
